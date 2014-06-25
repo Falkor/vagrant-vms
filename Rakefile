@@ -1,6 +1,6 @@
 ##############################################################################
 # Rakefile - Configuration file for rake (http://rake.rubyforge.org/)
-# Time-stamp: <Ven 2014-06-20 18:24 svarrette>
+# Time-stamp: <Mer 2014-06-25 15:24 svarrette>
 #
 # Copyright (c) 2014 Sebastien Varrette <Sebastien.Varrette@uni.lu>
 # .             http://varrette.gforge.uni.lu
@@ -40,8 +40,23 @@ FalkorLib.config.gitflow do |c|
 	} 
 end
 
+# Configure the git submodules
+FalkorLib.config.git do |c|
+	c[:submodules] = {
+		'veewee' => {
+			:url    => 'https://github.com/jedi4ever/veewee.git'
+		}
+	}
+end
+
+
 # Git[Flow] and Versioning management
 require "falkorlib/tasks/git"    # OR require "falkorlib/git_tasks"
+
+###########   setup   ###########
+desc "Setup the repository"
+task :setup => [ 'git:flow:init', 'git:submodules:init' ]
+
 
 
 

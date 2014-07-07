@@ -1,6 +1,6 @@
 ##############################################################################
 # Rakefile - Configuration file for rake (http://rake.rubyforge.org/)
-# Time-stamp: <Mer 2014-06-25 15:34 svarrette>
+# Time-stamp: <Lun 2014-07-07 18:05 svarrette>
 #
 # Copyright (c) 2014 Sebastien Varrette <Sebastien.Varrette@uni.lu>
 # .             http://varrette.gforge.uni.lu
@@ -51,11 +51,6 @@ end
 
 # Git[Flow] and Versioning management
 require "falkorlib/tasks/git"    # OR require "falkorlib/git_tasks"
-
-# ###########   setup   ###########
-# desc "Setup the repository"
-# task :setup => [ 'git:flow:init', 'git:submodules:init' ]
-
 
 
 

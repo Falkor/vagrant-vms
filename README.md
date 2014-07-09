@@ -3,7 +3,7 @@
 
 Copyright (c) 2014 [Sebastien Varrette](mailto:<Sebastien.Varrette@uni.lu>) [www](http://varrette.gforge.uni.lu)
 
-        Time-stamp: <Mar 2014-07-08 00:46 svarrette>
+        Time-stamp: <Mar 2014-07-08 12:44 svarrette>
 
 -------------------
 
@@ -21,7 +21,9 @@ The repository is meant to facilitate the generation of
 numerous [templates](https://github.com/jedi4ever/veewee/tree/master/templates)
 offered by [VeeWee](https://github.com/jedi4ever/veewee) -- a tool for easily
 (and repeatedly) building custom Vagrant base boxes, KVMs, and virtual machine
-images. 
+images.
+Internally, [veewee-to-packer](https://github.com/mitchellh/veewee-to-packer) is
+used to make the magical conversion.
 
 ## Pre-requisite
 

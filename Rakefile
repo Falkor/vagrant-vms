@@ -1,6 +1,6 @@
 ##############################################################################
 # Rakefile - Configuration file for rake (http://rake.rubyforge.org/)
-# Time-stamp: <Lun 2014-07-07 20:12 svarrette>
+# Time-stamp: <Ven 2014-07-11 18:59 svarrette>
 #
 # Copyright (c) 2014 Sebastien Varrette <Sebastien.Varrette@uni.lu>
 # .             http://varrette.gforge.uni.lu
@@ -32,6 +32,7 @@
 
 require 'falkorlib'
 require 'json'
+require 'pathname'
 
 # Adapt the Git flow aspects
 FalkorLib.config.gitflow do |c|
@@ -57,6 +58,7 @@ require "falkorlib/tasks/git"    # OR require "falkorlib/git_tasks"
 TOP_SRCDIR = File.expand_path(File.join(File.dirname(__FILE__), "."))
 VEEWEE_TEMPLATE_DIR = ".submodules/veewee/templates"
 PACKER_TEMPLATE_DIR = 'packer'
+SCRIPTS_DIR         = 'scripts'
 
 #.....................
 namespace :packer do
@@ -88,28 +90,25 @@ namespace :packer do
                 info "patching JSON file '#{json}'"
                 packer_config = JSON.parse( IO.read( json) )
                 packer_config['provisioners'].each do |p|
-                    puts p['override'].to_yaml
-					next unless p['override']
+                    #puts p['override'].to_yaml
+                    next unless p['override']
                     [ 'virtualbox', 'vmware' ].each do |os|
-						#next unless p['override'][ "#{os}" ]
-                        #ap p['override'][ os ]
-						#puts "=> patching p['override']['#{os}-iso']"
-						if p['override'][ os ]
-							p['override'][ "#{os}-iso" ] = p['override'].delete os
-						end 
-                        #p[:override][":#{os}-iso"] = p[:override].delete os if p[:override][ os.to_sym ]
-						#ap p['override']
-						#exit 1
+                        p['override'][ "#{os}-iso" ] = p['override'].delete os if p['override'][ os ]
                     end
                 end
-				# Now store the new json
-				File.open(json,"w") do |f|
-					f.write JSON.pretty_generate(packer_config)
-				end 
-				run %{
+                # Now store the new json
+                File.open(json,"w") do |f|
+                    f.write JSON.pretty_generate(packer_config)
+                end
+                s = run %{
                    #pwd
                    packer build -only=virtualbox-iso #{json}
                 }
+				boxfile = File.join(TOP_SRCDIR, PACKER_TEMPLATE_DIR, box, "#{box}.box")
+				puts "box file #{boxfile}"
+				info "the generated Vagrant box is '#{boxfile}'" if s.to_i == 0 && File.exists?( boxfile )
+				 
+                #if File.exists?("#{TOP_SRCDIR}/#{PACKER_TEMPLATE_DIR}/#{box})
             end
         end
 
@@ -170,19 +169,114 @@ namespace :packer do
             else
                 jsonfile = "#{output_dir}/#{File.basename output_dir}.json"
                 run %{
-                  veewee-to-packer -o #{output_dir} #{VEEWEE_TEMPLATE_DIR}/#{template}/definition.rb
-                  packer fix #{output_dir}/template.json > #{jsonfile}
-                  rm -f #{output_dir}/template.json
+                   veewee-to-packer -o #{output_dir} #{VEEWEE_TEMPLATE_DIR}/#{template}/definition.rb
+                   packer fix #{output_dir}/template.json > #{jsonfile}
+                   rm -f #{output_dir}/template.json
                 }
-                # info "patching JSON file '#{jsonfile}'"
+                info "adapting #{os} scripts"
+	            provision_scripts = []
+                Dir["#{TOP_SRCDIR}/#{SCRIPTS_DIR}/#{os}/*"].each do |f|
+                    script = File.basename( f )
+                    puts "=> adding #{SCRIPTS_DIR}/#{os}/#{script}"
+                    dstdir = Pathname.new( File.join(TOP_SRCDIR, output_dir, 'scripts') )
+                    relative_path = Pathname.new( f ).relative_path_from(dstdir)
+                    FileUtils.ln_s relative_path.to_s, File.join(dstdir, script ), :force => true
+					provision_scripts << "scripts/bootstrap.sh" if script == 'bootstrap.sh' && ! provision_scripts.include?(/bootstrap\.sh$/) 
+                end
+                info "patching JSON file '#{jsonfile}'"
+                # Eventual customization
+                begin
+                    custom_item = list_items("#{SCRIPTS_DIR}/#{os}/*",
+                                             {
+                                                 :text => "select the hook module to install",
+                                                 :pattern_exclude => [ '^bootstrap']
+                                             })
+                    provision_scripts << "scripts/#{custom_item}"
+                rescue SystemExit
+                    info "Installation without any specific customization"
+                end
+                packer_config = JSON.parse( IO.read( jsonfile ) )
+                packer_config['provisioners'].each do |p|
+                    if ! provision_scripts.empty? && p['scripts']
+	                    provision_scripts.each { |s|  p['scripts'].unshift s }
+                    end
+                    if p['override']
+                        [ 'virtualbox', 'vmware' ].each do |os|
+                            if p['override'][ os ]
+                                puts "=> adapting the provisioners '#{os}' to '#{os}-iso'"
+                                p['override'][ "#{os}-iso" ] = p['override'].delete os
+                            end
+                        end
+                    end
+                end
+                #ap packer_config['builders']
+                packer_config['builders'].each do |builder|
+                    if builder['boot_command']
+                        puts "=> remove useless <wait>"
+                        builder['boot_command'].each do |cmd|
+                            next if cmd =~ /^<esc>/ || cmd =~ /^<enter>/
+                            cmd.gsub!(/<wait>/, '')
+                        end
+                    end
+                end
+	            vagrant_postproc = [
+	                                {
+		                                "type"                => "vagrant",
+		                                "keep_input_artifact" => false,
+		                                "output"              => "#{File.basename output_dir}.box"
+	                                }
+	                               ]
+	            packer_config['post-processors'] = vagrant_postproc if packer_config['post-processors'].nil?
+	            #ap packer_config
+                # if packer_config['post-processors']
+                #     info "=> add vagrant post-processors"
+                #     ap packer_config['post-processors']
+                    
+	                
+                # end
+
+                # "post-processors": [{
+                #                         "type": "vagrant",
+                #                         "keep_input_artifact": false,
+                #                         "output": "box/{{.Provider}}/debian74-{{user `cm`}}{{user `cm_version`}}.box"
+                #                     }]
+
+
+                # Now store the new json
+                File.open(jsonfile,"w") do |f|
+                    f.write JSON.pretty_generate(packer_config)
+                end
+
+
                 # packer_config = JSON.parse( IO.read( jsonfile) )
 
                 # packer_config[]
                 # ap packer_config
             end
+            warn "consider running 'rake packer:build' now"
         end # task packer:template:generate
     end # namespace packer:template
 end # namespace packer
+
+###########   toto   ###########
+desc "toto"
+task :toto do |t|
+    info "#{t.comment}"
+    list_items("packer/debian-5.0.10-amd64/scripts/*",
+               {
+                   :only_files => true,
+                   :pattern_include => [
+                                        #                      '^b'
+                                        #                     ],
+                                        # :pattern_exclude => [
+                                        '^r',
+                                        '^v'
+                                       ]
+               })
+
+
+end # task toto
+
 
 task :setup => 'packer:check'
 

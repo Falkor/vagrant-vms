@@ -1,6 +1,6 @@
 ##############################################################################
 # Rakefile - Configuration file for rake (http://rake.rubyforge.org/)
-# Time-stamp: <Ven 2014-07-11 18:59 svarrette>
+# Time-stamp: <Sam 2014-07-12 21:58 svarrette>
 #
 # Copyright (c) 2014 Sebastien Varrette <Sebastien.Varrette@uni.lu>
 # .             http://varrette.gforge.uni.lu
@@ -60,6 +60,18 @@ VEEWEE_TEMPLATE_DIR = ".submodules/veewee/templates"
 PACKER_TEMPLATE_DIR = 'packer'
 SCRIPTS_DIR         = 'scripts'
 
+# List of OS templates
+raw_list = os_list = []
+Dir["#{TOP_SRCDIR}/#{VEEWEE_TEMPLATE_DIR}/*"].each do |dir|
+    if File.directory?(dir)
+        entry = File.basename(dir)
+        next if     (entry =~ /^windows-/ || entry =~ /^vmware-/i)
+        next unless entry =~ /amd|x86_64/
+        raw_list << entry
+    end
+end
+os_list = raw_list.map {|e| e.scan(/^[^-|_]+/) }.flatten.uniq
+
 #.....................
 namespace :packer do
 
@@ -104,10 +116,10 @@ namespace :packer do
                    #pwd
                    packer build -only=virtualbox-iso #{json}
                 }
-				boxfile = File.join(TOP_SRCDIR, PACKER_TEMPLATE_DIR, box, "#{box}.box")
-				puts "box file #{boxfile}"
-				info "the generated Vagrant box is '#{boxfile}'" if s.to_i == 0 && File.exists?( boxfile )
-				 
+                boxfile = File.join(TOP_SRCDIR, PACKER_TEMPLATE_DIR, box, "#{box}.box")
+                puts "box file #{boxfile}"
+                info "the generated Vagrant box is '#{boxfile}'" if s.to_i == 0 && File.exists?( boxfile )
+
                 #if File.exists?("#{TOP_SRCDIR}/#{PACKER_TEMPLATE_DIR}/#{box})
             end
         end
@@ -123,6 +135,39 @@ namespace :packer do
         info "#{t.comment}.... #{status}"
         error "Unable to find the 'packer' command on your system. See http://www.packer.io/downloads.html for download instructions" unless command?('packer')
     end # task check
+
+
+    os_list.select { |e| e =~ /deb|cen|scien|ubun|suse/i  }.each do |os|
+        #.....................
+        namespace os.to_sym do
+            ###########   build   ###########
+            desc "Build an Vagrant box for the '#{os}' operating system"
+            task :build do |t|
+                info "#{t.comment}"
+
+                version_list = raw_list.select { |e| e =~ /^#{os}/ }
+                list = { 0 => 'Exit' }
+                index = 1
+                list.merge! Hash[version_list.each_with_index.map { |value, index| [index+1, value] }]
+                v = select_from(list, "Select the #{os} version")
+
+            end # task build
+
+            unless Dir.glob("#{TOP_SRCDIR}/packer/#{os}*").empty?
+                ###########   clean   ###########
+                desc "Clean all templates generated for the '#{os}' operating system"
+                task :clean do |t|
+                    info "#{t.comment}"
+                    run %{
+                   rm -rf #{TOP_SRCDIR}/#{PACKER_TEMPLATE_DIR}/#{os}*
+                }
+                end # task clean
+            end
+
+
+        end
+    end
+
 
 
     #.....................
@@ -143,16 +188,16 @@ namespace :packer do
             info "List of supported Operating systems"
             list = { 0 => 'Exit' }
             index = 1
-            raw_list = os_list = []
-            Dir["#{TOP_SRCDIR}/#{VEEWEE_TEMPLATE_DIR}/*"].each do |dir|
-                if File.directory?(dir)
-                    entry = File.basename(dir)
-                    next if     (entry =~ /^windows-/ || entry =~ /^vmware-/i)
-                    next unless entry =~ /amd|x86_64/
-                    raw_list << entry
-                end
-            end
-            os_list = raw_list.map {|e| e.scan(/^[^-|_]+/) }.flatten.uniq
+            # raw_list = os_list = []
+            # Dir["#{TOP_SRCDIR}/#{VEEWEE_TEMPLATE_DIR}/*"].each do |dir|
+            #     if File.directory?(dir)
+            #         entry = File.basename(dir)
+            #         next if     (entry =~ /^windows-/ || entry =~ /^vmware-/i)
+            #         next unless entry =~ /amd|x86_64/
+            #         raw_list << entry
+            #     end
+            # end
+            # os_list = raw_list.map {|e| e.scan(/^[^-|_]+/) }.flatten.uniq
             os_list.each do |e|
                 list[index] = e
                 index+=1
@@ -174,14 +219,14 @@ namespace :packer do
                    rm -f #{output_dir}/template.json
                 }
                 info "adapting #{os} scripts"
-	            provision_scripts = []
+                provision_scripts = []
                 Dir["#{TOP_SRCDIR}/#{SCRIPTS_DIR}/#{os}/*"].each do |f|
                     script = File.basename( f )
                     puts "=> adding #{SCRIPTS_DIR}/#{os}/#{script}"
                     dstdir = Pathname.new( File.join(TOP_SRCDIR, output_dir, 'scripts') )
                     relative_path = Pathname.new( f ).relative_path_from(dstdir)
                     FileUtils.ln_s relative_path.to_s, File.join(dstdir, script ), :force => true
-					provision_scripts << "scripts/bootstrap.sh" if script == 'bootstrap.sh' && ! provision_scripts.include?(/bootstrap\.sh$/) 
+                    provision_scripts << "scripts/bootstrap.sh" if script == 'bootstrap.sh' && ! provision_scripts.include?(/bootstrap\.sh$/)
                 end
                 info "patching JSON file '#{jsonfile}'"
                 # Eventual customization
@@ -198,7 +243,7 @@ namespace :packer do
                 packer_config = JSON.parse( IO.read( jsonfile ) )
                 packer_config['provisioners'].each do |p|
                     if ! provision_scripts.empty? && p['scripts']
-	                    provision_scripts.each { |s|  p['scripts'].unshift s }
+                        provision_scripts.each { |s|  p['scripts'].unshift s }
                     end
                     if p['override']
                         [ 'virtualbox', 'vmware' ].each do |os|
@@ -219,20 +264,20 @@ namespace :packer do
                         end
                     end
                 end
-	            vagrant_postproc = [
-	                                {
-		                                "type"                => "vagrant",
-		                                "keep_input_artifact" => false,
-		                                "output"              => "#{File.basename output_dir}.box"
-	                                }
-	                               ]
-	            packer_config['post-processors'] = vagrant_postproc if packer_config['post-processors'].nil?
-	            #ap packer_config
+                vagrant_postproc = [
+                                    {
+                                        "type"                => "vagrant",
+                                        "keep_input_artifact" => false,
+                                        "output"              => "#{File.basename output_dir}.box"
+                                    }
+                                   ]
+                packer_config['post-processors'] = vagrant_postproc if packer_config['post-processors'].nil?
+                #ap packer_config
                 # if packer_config['post-processors']
                 #     info "=> add vagrant post-processors"
                 #     ap packer_config['post-processors']
-                    
-	                
+
+
                 # end
 
                 # "post-processors": [{

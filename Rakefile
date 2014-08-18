@@ -1,6 +1,6 @@
 ##############################################################################
 # Rakefile - Configuration file for rake (http://rake.rubyforge.org/)
-# Time-stamp: <Sam 2014-07-12 21:58 svarrette>
+# Time-stamp: <Lun 2014-08-18 18:37 svarrette>
 #
 # Copyright (c) 2014 Sebastien Varrette <Sebastien.Varrette@uni.lu>
 # .             http://varrette.gforge.uni.lu
@@ -75,56 +75,56 @@ os_list = raw_list.map {|e| e.scan(/^[^-|_]+/) }.flatten.uniq
 #.....................
 namespace :packer do
 
-    ###########   build   ###########
-    desc "Build a Vagrant image from a previously generated template"
-    task :build do |t|
-        info "#{t.comment}"
-        list = { 0 => 'Exit' }
-        index = 1
-        raw_list = {}
-        Dir["#{TOP_SRCDIR}/packer/*"].each do |dir|
-            if File.directory?(dir)
-                entry = File.basename(dir)
-                json = Dir.glob("#{dir}/*.json")
-                next if json.empty?
-                list[index] = entry
-                raw_list[entry] = json
-                index += 1
-            end
-        end
-        #puts raw_list.inspect
-        box = select_from_list("Select the Vagrant box to build using packer", list)
-        info "about to build the box '#{box}' using packer"
-        really_continue?
-        Dir.chdir("#{TOP_SRCDIR}/#{PACKER_TEMPLATE_DIR}/#{box}") do
-            raw_list[box].each do |jf|
-                json = File.basename("#{jf}")
-                info "patching JSON file '#{json}'"
-                packer_config = JSON.parse( IO.read( json) )
-                packer_config['provisioners'].each do |p|
-                    #puts p['override'].to_yaml
-                    next unless p['override']
-                    [ 'virtualbox', 'vmware' ].each do |os|
-                        p['override'][ "#{os}-iso" ] = p['override'].delete os if p['override'][ os ]
-                    end
-                end
-                # Now store the new json
-                File.open(json,"w") do |f|
-                    f.write JSON.pretty_generate(packer_config)
-                end
-                s = run %{
-                   #pwd
-                   packer build -only=virtualbox-iso #{json}
-                }
-                boxfile = File.join(TOP_SRCDIR, PACKER_TEMPLATE_DIR, box, "#{box}.box")
-                puts "box file #{boxfile}"
-                info "the generated Vagrant box is '#{boxfile}'" if s.to_i == 0 && File.exists?( boxfile )
+    # ###########   build   ###########
+    # desc "Build a Vagrant image from a previously generated template"
+    # task :build do |t|
+    #     info "#{t.comment}"
+    #     list = { 0 => 'Exit' }
+    #     index = 1
+    #     raw_list = {}
+    #     Dir["#{TOP_SRCDIR}/packer/*"].each do |dir|
+    #         if File.directory?(dir)
+    #             entry = File.basename(dir)
+    #             json = Dir.glob("#{dir}/*.json")
+    #             next if json.empty?
+    #             list[index] = entry
+    #             raw_list[entry] = json
+    #             index += 1
+    #         end
+    #     end
+    #     #puts raw_list.inspect
+    #     box = select_from_list("Select the Vagrant box to build using packer", list)
+    #     info "about to build the box '#{box}' using packer"
+    #     really_continue?
+    #     Dir.chdir("#{TOP_SRCDIR}/#{PACKER_TEMPLATE_DIR}/#{box}") do
+    #         raw_list[box].each do |jf|
+    #             json = File.basename("#{jf}")
+    #             info "patching JSON file '#{json}'"
+    #             packer_config = JSON.parse( IO.read( json) )
+    #             packer_config['provisioners'].each do |p|
+    #                 #puts p['override'].to_yaml
+    #                 next unless p['override']
+    #                 [ 'virtualbox', 'vmware' ].each do |os|
+    #                     p['override'][ "#{os}-iso" ] = p['override'].delete os if p['override'][ os ]
+    #                 end
+    #             end
+    #             # Now store the new json
+    #             File.open(json,"w") do |f|
+    #                 f.write JSON.pretty_generate(packer_config)
+    #             end
+    #             s = run %{
+    #                #pwd
+    #                packer build -only=virtualbox-iso #{json}
+    #             }
+    #             boxfile = File.join(TOP_SRCDIR, PACKER_TEMPLATE_DIR, box, "#{box}.box")
+    #             puts "box file #{boxfile}"
+    #             info "the generated Vagrant box is '#{boxfile}'" if s.to_i == 0 && File.exists?( boxfile )
 
-                #if File.exists?("#{TOP_SRCDIR}/#{PACKER_TEMPLATE_DIR}/#{box})
-            end
-        end
+    #             #if File.exists?("#{TOP_SRCDIR}/#{PACKER_TEMPLATE_DIR}/#{box})
+    #         end
+    #     end
 
-    end # task build
+    # end # task build
 
 
 
@@ -137,36 +137,36 @@ namespace :packer do
     end # task check
 
 
-    os_list.select { |e| e =~ /deb|cen|scien|ubun|suse/i  }.each do |os|
-        #.....................
-        namespace os.to_sym do
-            ###########   build   ###########
-            desc "Build an Vagrant box for the '#{os}' operating system"
-            task :build do |t|
-                info "#{t.comment}"
+    # os_list.select { |e| e =~ /deb|cen|scien|ubun|suse/i  }.each do |os|
+    #     #.....................
+    #     namespace os.to_sym do
+    #         ###########   build   ###########
+    #         desc "Build an Vagrant box for the '#{os}' operating system"
+    #         task :build do |t|
+    #             info "#{t.comment}"
 
-                version_list = raw_list.select { |e| e =~ /^#{os}/ }
-                list = { 0 => 'Exit' }
-                index = 1
-                list.merge! Hash[version_list.each_with_index.map { |value, index| [index+1, value] }]
-                v = select_from(list, "Select the #{os} version")
+    #             version_list = raw_list.select { |e| e =~ /^#{os}/ }
+    #             list = { 0 => 'Exit' }
+    #             index = 1
+    #             list.merge! Hash[version_list.each_with_index.map { |value, index| [index+1, value] }]
+    #             v = select_from(list, "Select the #{os} version")
 
-            end # task build
+    #         end # task build
 
-            unless Dir.glob("#{TOP_SRCDIR}/packer/#{os}*").empty?
-                ###########   clean   ###########
-                desc "Clean all templates generated for the '#{os}' operating system"
-                task :clean do |t|
-                    info "#{t.comment}"
-                    run %{
-                   rm -rf #{TOP_SRCDIR}/#{PACKER_TEMPLATE_DIR}/#{os}*
-                }
-                end # task clean
-            end
+    #         unless Dir.glob("#{TOP_SRCDIR}/packer/#{os}*").empty?
+    #             ###########   clean   ###########
+    #             desc "Clean all templates generated for the '#{os}' operating system"
+    #             task :clean do |t|
+    #                 info "#{t.comment}"
+    #                 run %{
+    #                rm -rf #{TOP_SRCDIR}/#{PACKER_TEMPLATE_DIR}/#{os}*
+    #             }
+    #             end # task clean
+    #         end
 
 
-        end
-    end
+    #     end
+    # end
 
 
 
@@ -325,14 +325,14 @@ end # task toto
 
 task :setup => 'packer:check'
 
-private
-def select_from_list(text, list, default_idx = 0)
-    puts list.to_yaml
-    answer = ask("=> #{text}", "#{default_idx}")
-    raise SystemExit.new('exiting selection') if answer == '0'
-    raise RangeError.new('Undefined index')   if Integer(answer) >= list.length
-    return list[Integer(answer)]
-end
+# private
+# def select_from_list(text, list, default_idx = 0)
+#     puts list.to_yaml
+#     answer = ask("=> #{text}", "#{default_idx}")
+#     raise SystemExit.new('exiting selection') if answer == '0'
+#     raise RangeError.new('Undefined index')   if Integer(answer) >= list.length
+#     return list[Integer(answer)]
+# end
 
 
 

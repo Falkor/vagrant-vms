@@ -1,6 +1,6 @@
 ##############################################################################
 # Rakefile - Configuration file for rake (http://rake.rubyforge.org/)
-# Time-stamp: <Lun 2014-08-18 22:42 svarrette>
+# Time-stamp: <Mar 2014-08-19 10:34 svarrette>
 #
 # Copyright (c) 2014 Sebastien Varrette <Sebastien.Varrette@uni.lu>
 # .             http://varrette.gforge.uni.lu
@@ -415,25 +415,24 @@ namespace :packer do
     #     end # namespace packer:template
 end # namespace packer
 
-###########   toto   ###########
-desc "toto"
-task :toto do |t|
-    info "#{t.comment}"
-    list_items("packer/debian-5.0.10-amd64/scripts/*",
-               {
-                   :only_files => true,
-                   :pattern_include => [
-                                        #                      '^b'
-                                        #                     ],
-                                        # :pattern_exclude => [
-                                        '^r',
-                                        '^v'
-                                       ]
-               })
+# ###########   toto   ###########
+# desc "toto"
+# task :toto do |t|
+#     info "#{t.comment}"
+#     list_items("packer/debian-5.0.10-amd64/scripts/*",
+#                {
+#                    :only_files => true,
+#                    :pattern_include => [
+#                                         #                      '^b'
+#                                         #                     ],
+#                                         # :pattern_exclude => [
+#                                         '^r',
+#                                         '^v'
+#                                        ]
+#                })
 
 
-end # task toto
-
+# end # task toto
 
 task :setup => 'packer:check'
 

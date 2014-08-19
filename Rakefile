@@ -1,6 +1,6 @@
 ##############################################################################
 # Rakefile - Configuration file for rake (http://rake.rubyforge.org/)
-# Time-stamp: <Mar 2014-08-19 10:34 svarrette>
+# Time-stamp: <Mar 2014-08-19 11:35 svarrette>
 #
 # Copyright (c) 2014 Sebastien Varrette <Sebastien.Varrette@uni.lu>
 # .             http://varrette.gforge.uni.lu
@@ -250,10 +250,11 @@ namespace :packer do
                             s = run %{
                                packer build -only=virtualbox-iso #{json}
                             }
-                            boxfile = File.join(TOP_SRCDIR, box, "#{box}.box")
+                            boxfile = File.join(TOP_SRCDIR, "#{box}.box")
                             puts "box file #{boxfile}"
+							puts s.to_i
                             info "the generated Vagrant box is '#{boxfile}'" if s.to_i == 0 && File.exists?( boxfile )
-
+							
 						end
 
                         # ap raw_list[box]

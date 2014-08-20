@@ -102,5 +102,6 @@ PLATFORMS
 
 DEPENDENCIES
   falkorlib!
+  json
   veewee
   veewee-to-packer

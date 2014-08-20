@@ -1,6 +1,6 @@
 ##############################################################################
 # Rakefile - Configuration file for rake (http://rake.rubyforge.org/)
-# Time-stamp: <Mar 2014-08-19 11:35 svarrette>
+# Time-stamp: <Mer 2014-08-20 17:09 svarrette>
 #
 # Copyright (c) 2014 Sebastien Varrette <Sebastien.Varrette@uni.lu>
 # .             http://varrette.gforge.uni.lu
@@ -252,10 +252,15 @@ namespace :packer do
                             }
                             boxfile = File.join(TOP_SRCDIR, "#{box}.box")
                             puts "box file #{boxfile}"
-							puts s.to_i
+                            puts s.to_i
                             info "the generated Vagrant box is '#{boxfile}'" if s.to_i == 0 && File.exists?( boxfile )
-							
-						end
+                            if File.exists?( boxfile )
+                                y = ask("Shall it be added to vagrant (Y|n)", 'Yes')
+                                run  %{
+                                  vagrant box add #{box} #{boxfile}
+                                } unless y =~ /n.*/i
+                            end
+                        end
 
                         # ap raw_list[box]
                         # raw_list[box].each do |jf|

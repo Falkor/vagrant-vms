@@ -37,3 +37,4 @@ build/
 # generated templates
 packer*
 Vagrantfile
+.vagrant*

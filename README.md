@@ -47,9 +47,11 @@ Configure the repository and its dependencies:
 
 You can initiate a template for a given Operating System:
 
-     $> rake packer:template:generate
-    
-The template is generated in the `packer/` script (for instance `packer/debian-7.5.0-amd64`).
+     $> rake packer:{Debian,CentOS,openSUSE,scientificlinux,ubuntu}:init
+     
+The template is generated in the `packer/` script. You'll have to answer a couple of questions, including the version of the OS 
+
+ (for instance `packer/debian-7.5.0-amd64`).
      
 ## Build a Vagrant box
 

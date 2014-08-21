@@ -1,6 +1,6 @@
 ##############################################################################
 # Rakefile - Configuration file for rake (http://rake.rubyforge.org/)
-# Time-stamp: <Mer 2014-08-20 17:15 svarrette>
+# Time-stamp: <Jeu 2014-08-21 15:18 svarrette>
 #
 # Copyright (c) 2014 Sebastien Varrette <Sebastien.Varrette@uni.lu>
 # .             http://varrette.gforge.uni.lu
@@ -144,6 +144,14 @@ namespace :packer do
                                     end
                                 end
                             end
+							if p['scripts']
+								['chef.sh'].each do |script| 
+									if p['scripts'][ script ]
+										puts "=> removing provisioners script '#{script}"
+										p['scripts'].delete "scripts/#{scripts}"
+									end 
+								end
+							end 
                         end
                         #ap packer_config['builders']
                         packer_config['builders'].each do |builder|

@@ -1,6 +1,6 @@
 ##############################################################################
 # Rakefile - Configuration file for rake (http://rake.rubyforge.org/)
-# Time-stamp: <Ven 2014-08-22 17:09 svarrette>
+# Time-stamp: <Ven 2014-08-22 17:58 svarrette>
 #
 # Copyright (c) 2014 Sebastien Varrette <Sebastien.Varrette@uni.lu>
 # .             http://varrette.gforge.uni.lu
@@ -59,6 +59,7 @@ TOP_SRCDIR = File.expand_path(File.join(File.dirname(__FILE__), "."))
 VEEWEE_TEMPLATE_DIR = ".submodules/veewee/templates"
 PACKER_TEMPLATE_DIR = 'packer'
 SCRIPTS_DIR         = 'scripts'
+PUPPET_DIR          = 'puppet'
 
 # List of OS templates
 raw_list = os_list = []
@@ -121,6 +122,16 @@ namespace :packer do
                         FileUtils.ln_s relative_path.to_s, File.join(dstdir, script ), :force => true
                         provision_scripts << "scripts/bootstrap.sh" if script == 'bootstrap.sh' && ! provision_scripts.include?(/bootstrap\.sh$/)
                     end
+					# Prepare puppet directory 
+					puppet_role = 'default'
+					# TODO: select puppet custom role
+					puppet_dstdir = Pathname.new( File.join(TOP_SRCDIR, output_dir) )
+					puppet_srcdir = Pathname.new( File.join(TOP_SRCDIR, PUPPET_DIR, puppet_role) )
+					puts "puppet_dstdir = #{puppet_dstdir.to_s}"
+					puts "puppet_srcdir = #{puppet_srcdir.to_s}"
+					puppetdir_relative_path = puppet_srcdir.relative_path_from( puppet_dstdir )
+					puts "rel path = #{puppetdir_relative_path.to_s}"
+					FileUtils.ln_s puppetdir_relative_path.to_s, "#{puppet_dstdir}/puppet", :force => true
                     # Eventual customization
                     begin
 	                    custom_item = list_items("#{TOP_SRCDIR}/#{SCRIPTS_DIR}/#{os}/*",
@@ -136,10 +147,18 @@ namespace :packer do
                         info "Installation without any specific customization"
                     end
                     packer_config = JSON.parse( IO.read( jsonfile ) )
+					# [Librarian-]puppet specialization
+					# TODO: select appropriate Puppetfile
+					packer_vagrantfile_entry = {
+						"type"        => "file",
+						"source"      => "puppet/Puppetfile.default",
+						"destination" =>  "/tmp/Puppetfile"
+					}
+					#packer_config['provisioners'].unshift 
                     packer_config['provisioners'].each do |p|
                         if ! provision_scripts.empty? && p['scripts']
                             provision_scripts.each { |s|  p['scripts'].unshift s }
-                        end
+                        end				
 						Dir["#{TOP_SRCDIR}/#{SCRIPTS_DIR}/core/*"].each do |f| 
 							script = File.basename( f )
 							if script =~ /motd/
@@ -151,16 +170,14 @@ namespace :packer do
 									:support  => "#{ENV['GIT_AUTHOR_EMAIL']}"
 								}.each do |k,v| 
 									ans = ask("[motd] Vagrant box #{k}", v)
-									packer_config["variables"] = { } if packer_config["variables"].nil?
-									packer_config["variables"][ "motd_#{k}"] = "#{ans}" unless ans.empty?
+									# packer_config["variables"] = { } if packer_config["variables"].nil?
+									# packer_config["variables"][ "motd_#{k}"] = "#{ans}" unless ans.empty?
 									p['environment_vars'] = [] if p['environment_vars'].nil?
 									p['environment_vars'] << "MOTD_#{k.upcase}='#{ans}'"
 								end
 							end 
 							p['scripts'] << "scripts/#{script}" 
 						end
-                        
-
                         if p['override']
                             [ 'virtualbox', 'vmware' ].each do |os|
                                 if p['override'][ os ]
@@ -180,6 +197,7 @@ namespace :packer do
 	                        #         #p['scripts'].delete "scripts/#{scripts}"
                         end
                     end
+					packer_config['provisioners'].unshift packer_vagrantfile_entry
                     #ap packer_config['builders']
                     packer_config['builders'].each do |builder|
                         if builder['boot_command']
@@ -231,7 +249,7 @@ namespace :packer do
                         Dir.glob("*.json").each do |jf|
                             json = File.basename("#{jf}")
                             s = run %{
-                               PACKER_CACHE_DIR=#{TOP_SRCDIR}/.packer_cache packer build -v -only=virtualbox-iso #{json}
+                               PACKER_CACHE_DIR=#{TOP_SRCDIR}/.packer_cache packer build -only=virtualbox-iso #{json}
                             }
                             boxfile = File.join(TOP_SRCDIR, "#{box}.box")
                             puts "box file #{boxfile}"

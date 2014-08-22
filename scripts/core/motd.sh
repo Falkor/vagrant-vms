@@ -2,7 +2,7 @@
 ################################################################################
 # motd.sh - Create the proper MOTD with style.  
 # Creation : 21 Aug 2014
-# Time-stamp: <Jeu 2014-08-21 22:36 svarrette>
+# Time-stamp: <Ven 2014-08-22 17:02 svarrette>
 #
 # Copyright (c) 2014 Sebastien Varrette <Sebastien.Varrette@uni.lu>
 #               http://varrette.gforge.uni.lu
@@ -30,20 +30,21 @@
 MOTD="/etc/motd"
 
 #==========  Default Config =============
-NAME=""
-MSG1="Vagrant TestBox"
-MSG2=""
+NAME="${MOTD_NAME}"
+TITLE="${MOTD_TITLE}"
+SUBTITLE="${MOTD_SUBTITLE}"
+DESC="${MOTD_DESC}"
 HOSTNAME=`hostname -f`
-SUPPORT_MAIL="Sebastien.Varrette@uni.lu"
+SUPPORT_MAIL="${MOTD_SUPPORT}"
 #========================================
 
 print_usage() {
     cat <<EOF
-    $0 [--motd-name "vagrant box name"] \
-       [--motd_hostname "hostname"] \
-       [--motd_mgs1 "message 1"] \
-       [--motd_mgs2 "message 2"] \
-       [--motd_suppoort "support@mail.com"] 
+    $0 [--name "vagrant box name"] \
+       [--title "Title"] \
+       [--subtitle "Subtitle"] \
+       [--desc "description"] \
+       [--suppoort "support@mail.com"] 
 
 This will generate the appropriate ${MOTD} file
 EOF
@@ -54,21 +55,26 @@ while [ $# -ge 1 ]; do
     case $1 in
         -h | --help)    print_usage;       exit 0;;
         -V | --version) print_version;     exit 0;;
-        --motd_name)      shift; NAME=$1;;
-        --motd_msg1)      shift; MSG1=$1;;
-        --motd_msg2)      shift; MSG2=$1;;
-        --motd_support)   shift; SUPPORT_MAIL=$1;;
+        -n | --name)      shift; NAME=$1;;
+        -t | --title)     shift; TITLE=$1;;
+        -m2| --msg2)      shift; MSG2=$1;;
+        -d | --desc)      shift; DESC=$1;;
+        -s | --support)   shift; SUPPORT_MAIL=$1;;
     esac
     shift
 done
 
 cat <<MOTD_EOF > ${MOTD}
+---
+`env`
+$#
+$*
 ================================================================================
- Welcome to the Vagrant box ${name}
+ Welcome to the Vagrant box ${NAME}
 ================================================================================
 MOTD_EOF
-if [ -n "$MSG1" ]; then
-    figlet -w 80 -c "${MSG1}" >>  ${MOTD}
+if [ -n "$TITLE" ]; then
+    figlet -w 80 -c "${TITLE}" >>  ${MOTD}
 fi
 if [ -n "$MSG2" ]; then
     figlet -w 80 -c "${MSG2}" >>  ${MOTD}
@@ -78,6 +84,8 @@ cat <<MOTD_EOF >> ${MOTD}
     Hostname.... `hostname -f`
     OS.......... `facter --yaml | grep lsbdistdescription | cut -d ':' -f 2`
     Support..... ${SUPPORT_MAIL}
-    Docs........ Vagrant: http://docs.vagrantup.com/v2/         
+    Docs........ Vagrant: http://docs.vagrantup.com/v2/
+
+    ${DESC}         
 ================================================================================
 MOTD_EOF

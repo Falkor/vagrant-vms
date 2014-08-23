@@ -3,7 +3,7 @@
 
 Copyright (c) 2014 [Sebastien Varrette](mailto:<Sebastien.Varrette@uni.lu>) [www](http://varrette.gforge.uni.lu)
 
-        Time-stamp: <Mar 2014-07-08 12:44 svarrette>
+        Time-stamp: <Sam 2014-08-23 22:20 svarrette>
 
 -------------------
 
@@ -82,6 +82,7 @@ workflow, you have to run the following commands once you cloned it for the
 first time: 
 
       $> rake setup 
+
 ## Resources
 
 ### Git 

@@ -38,3 +38,4 @@ build/
 packer*
 Vagrantfile
 .vagrant*
+.packer_cache*

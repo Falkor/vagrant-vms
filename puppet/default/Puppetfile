@@ -4,7 +4,7 @@
 forge "https://forgeapi.puppetlabs.com"
 
 # use dependencies defined in metadata.json
-metadata
+#metadata
 
 # use dependencies defined in Modulefile
 # modulefile

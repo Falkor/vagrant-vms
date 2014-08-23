@@ -1,8 +1,8 @@
-#! /bin/bash
+#! /bin/bash -x
 ################################################################################
 # motd.sh - Create the proper MOTD with style.  
 # Creation : 21 Aug 2014
-# Time-stamp: <Ven 2014-08-22 17:02 svarrette>
+# Time-stamp: <Ven 2014-08-22 21:14 svarrette>
 #
 # Copyright (c) 2014 Sebastien Varrette <Sebastien.Varrette@uni.lu>
 #               http://varrette.gforge.uni.lu
@@ -57,7 +57,7 @@ while [ $# -ge 1 ]; do
         -V | --version) print_version;     exit 0;;
         -n | --name)      shift; NAME=$1;;
         -t | --title)     shift; TITLE=$1;;
-        -m2| --msg2)      shift; MSG2=$1;;
+        -st| --subtitle)  shift; SUBTITLE=$1;;
         -d | --desc)      shift; DESC=$1;;
         -s | --support)   shift; SUPPORT_MAIL=$1;;
     esac
@@ -65,10 +65,6 @@ while [ $# -ge 1 ]; do
 done
 
 cat <<MOTD_EOF > ${MOTD}
----
-`env`
-$#
-$*
 ================================================================================
  Welcome to the Vagrant box ${NAME}
 ================================================================================
@@ -76,8 +72,8 @@ MOTD_EOF
 if [ -n "$TITLE" ]; then
     figlet -w 80 -c "${TITLE}" >>  ${MOTD}
 fi
-if [ -n "$MSG2" ]; then
-    figlet -w 80 -c "${MSG2}" >>  ${MOTD}
+if [ -n "$SUBTITLE" ]; then
+    figlet -w 80 -c "${SUBTITLE}" >>  ${MOTD}
 fi
 cat <<MOTD_EOF >> ${MOTD}
 ================================================================================

@@ -1,6 +1,6 @@
 ##############################################################################
 # Rakefile - Configuration file for rake (http://rake.rubyforge.org/)
-# Time-stamp: <Ven 2014-08-22 17:58 svarrette>
+# Time-stamp: <Ven 2014-08-22 23:11 svarrette>
 #
 # Copyright (c) 2014 Sebastien Varrette <Sebastien.Varrette@uni.lu>
 # .             http://varrette.gforge.uni.lu
@@ -151,22 +151,27 @@ namespace :packer do
 					# TODO: select appropriate Puppetfile
 					packer_vagrantfile_entry = {
 						"type"        => "file",
-						"source"      => "puppet/Puppetfile.default",
+						"source"      => "puppet/Puppetfile",
 						"destination" =>  "/tmp/Puppetfile"
 					}
+					# motd_entry = {
+					# 	"type"   =>  "shell",
+					# 	"script" =>  "scripts/motd.sh",
+					# 	"execute_command" => "echo 'packer' | {{ .Vars }} sudo -E -S sh '{{ .Path }}"
+					# }
 					#packer_config['provisioners'].unshift 
                     packer_config['provisioners'].each do |p|
                         if ! provision_scripts.empty? && p['scripts']
                             provision_scripts.each { |s|  p['scripts'].unshift s }
-                        end				
+                        end	
 						Dir["#{TOP_SRCDIR}/#{SCRIPTS_DIR}/core/*"].each do |f| 
 							script = File.basename( f )
 							if script =~ /motd/
 								{
-									:name     => '',
+									:name     => 'myname',
 									:title    => 'Vagrant Testbox',
-									:subtitle => '',
-									:desc     => '',
+									:subtitle => 'subtitle',
+									:desc     => 'desc',
 									:support  => "#{ENV['GIT_AUTHOR_EMAIL']}"
 								}.each do |k,v| 
 									ans = ask("[motd] Vagrant box #{k}", v)
@@ -174,9 +179,12 @@ namespace :packer do
 									# packer_config["variables"][ "motd_#{k}"] = "#{ans}" unless ans.empty?
 									p['environment_vars'] = [] if p['environment_vars'].nil?
 									p['environment_vars'] << "MOTD_#{k.upcase}='#{ans}'"
+									#motd_entry["execute_command"] += " --#{k} \"#{ans}\""  
 								end
-							end 
+								#motd_entry["execute_command"] += "'"
+							end #else 
 							p['scripts'] << "scripts/#{script}" 
+							#end 
 						end
                         if p['override']
                             [ 'virtualbox', 'vmware' ].each do |os|
@@ -198,7 +206,8 @@ namespace :packer do
                         end
                     end
 					packer_config['provisioners'].unshift packer_vagrantfile_entry
-                    #ap packer_config['builders']
+                    #packer_config['provisioners'] << motd_entry
+					#ap packer_config['builders']
                     packer_config['builders'].each do |builder|
                         if builder['boot_command']
                             puts "=> remove useless <wait>"
@@ -249,7 +258,10 @@ namespace :packer do
                         Dir.glob("*.json").each do |jf|
                             json = File.basename("#{jf}")
                             s = run %{
-                               PACKER_CACHE_DIR=#{TOP_SRCDIR}/.packer_cache packer build -only=virtualbox-iso #{json}
+                               PACKER_CACHE_DIR=#{TOP_SRCDIR}/.packer_cache  \
+                               PACKER_LOG=yes   \
+                               PACKER_LOG_PATH=#{TOP_SRCDIR}/#{box}/packer.log \
+                                   packer build -only=virtualbox-iso #{json}
                             }
                             boxfile = File.join(TOP_SRCDIR, "#{box}.box")
                             puts "box file #{boxfile}"

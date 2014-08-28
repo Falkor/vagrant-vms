@@ -3,7 +3,7 @@
 
 Copyright (c) 2014 [Sebastien Varrette](mailto:<Sebastien.Varrette@uni.lu>) [www](http://varrette.gforge.uni.lu)
 
-        Time-stamp: <Sam 2014-08-23 22:20 svarrette>
+        Time-stamp: <Thu 2014-08-28 11:22 svarrette>
 
 -------------------
 
@@ -58,7 +58,27 @@ The template is generated in the `packer/` script. You'll have to answer a coupl
 Once you have generated a template, you can build the corresponding Vagrant box
 using 
 
-     $> rake packer:build
+     $> rake packer:{Debian,CentOS,openSUSE,scientificlinux,ubuntu}:build
+
+If everything goes fine, you shall find your freshly generated box in
+`packer/<os>-<version>-<arch>/<os>-<version>-<arch>.box` that you can then add
+to your local box by running 
+
+     $> vagrant box add packer/<os>-<version>-<arch>/<os>-<version>-<arch>.box
+
+## Customizations
+
+__(in progress)__ Customization of the generated box is based on
+[puppet](http://puppetlabs.com/) and can be performed by the definition of
+profiles in the `puppet/`. 
+
+For each profile, a `Puppetfile` needs to be defined since the puppet
+environment will be later on initialized within the packer process using
+[librarian-puppet](http://librarian-puppet.com/) or
+[r10k](https://github.com/adrienthebo/r10k). 
+Then the appropriate manifest shall be defined.
+
+
 
 ## Git Branching Model
 

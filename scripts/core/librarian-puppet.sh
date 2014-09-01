@@ -8,6 +8,10 @@
 PUPPET_DIR=/etc/puppet/
 PUPPETFILE_SRC=/tmp/Puppetfile
 
+if [ -d '/vagrant' ]; then 
+    [ -f '/vagrant/puppet/Puppetfile' ] && PUPPETFILE_SRC=/vagrant/puppet/Puppetfile
+fi 
+
 # NB: librarian-puppet might need git installed. If it is not already installed
 # in your basebox, this will manually install it at this point using apt or yum
 
@@ -38,6 +42,12 @@ fi
 if [ ! -d "$PUPPET_DIR" ]; then
     mkdir -p ${PUPPET_DIR}
 fi
+
+if [ ! -f ${PUPPETFILE_SRC} ]; then 
+    echo "*** ERROR*** unable to find the puppetfile  ${PUPPETFILE_SRC}"
+    exit 1
+fi 
+
 cp ${PUPPETFILE_SRC} ${PUPPET_DIR}/
 
 if [ "$(gem list -i '^librarian-puppet$')" = "false" ]; then

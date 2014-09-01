@@ -12,7 +12,10 @@ forge "https://forgeapi.puppetlabs.com"
 # A module from the Puppet Forge
 mod 'puppetlabs/stdlib'
 mod "puppetlabs/concat"
-mod "puppetlabs/git"
+mod "puppetlabs/ntp"
+mod "zack/r10k"
+mod "saz/ssh"
+mod "saz/motd"
 
 # A module from git
 # mod 'puppetlabs-ntp',

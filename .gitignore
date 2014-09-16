@@ -39,4 +39,4 @@ packer*
 Vagrantfile
 .vagrant*
 .packer_cache*
-.rare_tasks~
+.rake_tasks~

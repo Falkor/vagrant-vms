@@ -40,3 +40,4 @@ Vagrantfile
 .vagrant*
 .packer_cache*
 .rake_tasks~
+.bashrc

@@ -41,7 +41,7 @@ fi
 cp ${PUPPETFILE_SRC} ${PUPPET_DIR}/
 
 if [ "$(gem list -i '^librarian-puppet$')" = "false" ]; then
-    gem install librarian-puppet
+    gem install librarian-puppet --no-rdoc --no-ri
     cd ${PUPPET_DIR} && librarian-puppet install --clean
 else
     cd ${PUPPET_DIR} && librarian-puppet update

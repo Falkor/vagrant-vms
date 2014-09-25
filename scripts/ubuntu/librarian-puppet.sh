@@ -44,8 +44,8 @@ if [ "$(gem list -i '^librarian-puppet$')" = "false" ]; then
     gem install librarian-puppet --no-rdoc --no-ri
     # Changement de metadata en #metadata dans le fichier Puppetfile pour corriger le bug au moment de librarian-puppet install --clean
     sed -i 's/metadata/#metadata/g' /etc/puppet/Puppetfile
-    
-    cd ${PUPPET_DIR} && librarian-puppet install --clean
+ 
+   cd ${PUPPET_DIR} && librarian-puppet install --clean
 else
     cd ${PUPPET_DIR} && librarian-puppet update
 fi

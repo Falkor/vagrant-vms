@@ -18,6 +18,7 @@ then
     yum install -y ruby-2.1.2-2.el6.x86_64
 elif [ "$VERSION" -eq "7" ]
 then
+    yum install -y epel-release
     wget http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
     rpm -ivh remi-release-7*.rpm 
 

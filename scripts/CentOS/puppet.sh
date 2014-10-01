@@ -1,9 +1,9 @@
 # Install Puppet
 
-VERSION=$(awk '{print $3}' /etc/centos-release)
+VERSION=$(sed 's/[^0-9]//g' /etc/centos-release)
 VERSION=${VERSION:0:1}
 
-if [ "$VERSION" -eq "6"]
+if [ "$VERSION" -eq "6" ]
 then
     wget http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
     rpm -Uvh remi-release-6*.rpm 
@@ -13,7 +13,10 @@ then
     echo "gpgcheck=0" >> /etc/yum.repos.d/personal-repos-www.repo
     echo "name=Red Hat Linux $releasever - $basearch" >> /etc/yum.repos.d/personal-repos-www.repo
     echo "baseurl=http://ec2-54-77-188-112.eu-west-1.compute.amazonaws.com/repo/el6/" >> /etc/yum.repos.d/personal-repos-www.repo
-elif [ "$VERSION" -eq "7"]
+
+    yum clean all
+    yum install -y ruby-2.1.2-2.el6.x86_64
+elif [ "$VERSION" -eq "7" ]
 then
     wget http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
     rpm -ivh remi-release-7*.rpm 
@@ -23,10 +26,10 @@ then
     echo "gpgcheck=0" >> /etc/yum.repos.d/personal-repos-www.repo
     echo "name=Red Hat Linux $releasever - $basearch" >> /etc/yum.repos.d/personal-repos-www.repo
     echo "baseurl=http://ec2-54-77-188-112.eu-west-1.compute.amazonaws.com/repo/el7/" >> /etc/yum.repos.d/personal-repos-www.repo
-fi
 
-yum clean all
-yum install -y ruby
+    yum clean all
+    yum install -y ruby-2.1.3-2.el7.centos.x86_64
+fi
 
 gem install puppet facter ruby-shadow
 

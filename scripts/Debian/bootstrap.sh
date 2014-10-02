@@ -1,5 +1,12 @@
 # Falkor Bootstrap to install missing packages etc... 
 
-# Install CuRL
-apt-get -y install curl
+# Install some key missed packages
+apt-get -y install curl figlet vim bash-completion
+
+# Puppet customization 
+apt-get -y install facter
+
+
+
+
 

@@ -1,6 +1,6 @@
 ##############################################################################
 # Rakefile - Configuration file for rake (http://rake.rubyforge.org/)
-# Time-stamp: <Mer 2014-08-20 17:15 svarrette>
+# Time-stamp: <Ven 2014-08-22 23:11 svarrette>
 #
 # Copyright (c) 2014 Sebastien Varrette <Sebastien.Varrette@uni.lu>
 # .             http://varrette.gforge.uni.lu
@@ -59,6 +59,7 @@ TOP_SRCDIR = File.expand_path(File.join(File.dirname(__FILE__), "."))
 VEEWEE_TEMPLATE_DIR = ".submodules/veewee/templates"
 PACKER_TEMPLATE_DIR = 'packer'
 SCRIPTS_DIR         = 'scripts'
+PUPPET_DIR          = 'puppet'
 
 # List of OS templates
 raw_list = os_list = []
@@ -93,85 +94,146 @@ namespace :packer do
 
         #.....................
         namespace os.to_sym do
-			###########   packer:{Debian,CentOS,openSUSE,scientificlinux,ubuntu}:init   ###########
+            ###########   packer:{Debian,CentOS,openSUSE,scientificlinux,ubuntu}:init   ###########
             desc "Initialize the #{os} template image for vagrant "
             task :init do |t|
                 info "#{t.comment}"
                 #version_list = raw_list.select { |e| e =~ /^#{os}/ }
-                v = select_from(version_list, "Select the supported #{os} version")
+                v = select_from(version_list, "Select the supported #{os} version", 16)
                 output_dir = File.join(PACKER_TEMPLATE_DIR, v.gsub(/-netboot$/, '').downcase)
                 if File.directory?( File.join(TOP_SRCDIR, output_dir) )
                     warn "the directory #{output_dir} already exists"
-                else
-                    jsonfile = File.join(TOP_SRCDIR, output_dir, "#{File.basename output_dir}.json")
-                    Dir.chdir(TOP_SRCDIR) do
-                        run %{
+                    really_continue?
+                end
+                jsonfile = File.join(TOP_SRCDIR, output_dir, "#{File.basename output_dir}.json")
+                Dir.chdir(TOP_SRCDIR) do
+                    run %{
                            veewee-to-packer -o #{output_dir} #{VEEWEE_TEMPLATE_DIR}/#{v}/definition.rb
                            packer fix #{output_dir}/template.json > #{jsonfile}
                            rm -f #{output_dir}/template.json
                         }
-                        info "adapting #{os} scripts"
-                        provision_scripts = []
-                        Dir["#{TOP_SRCDIR}/#{SCRIPTS_DIR}/#{os}/*"].each do |f|
-                            script = File.basename( f )
-                            puts "=> adding #{SCRIPTS_DIR}/#{os}/#{script}"
-                            dstdir = Pathname.new( File.join(TOP_SRCDIR, output_dir, 'scripts') )
-                            relative_path = Pathname.new( f ).relative_path_from(dstdir)
-                            FileUtils.ln_s relative_path.to_s, File.join(dstdir, script ), :force => true
-                            provision_scripts << "scripts/bootstrap.sh" if script == 'bootstrap.sh' && ! provision_scripts.include?(/bootstrap\.sh$/)
-                        end
-                        # Eventual customization
-                        begin
-                            custom_item = list_items("#{SCRIPTS_DIR}/#{os}/*",
-                                                     {
-                                                         :text => "select the hook module to install",
-                                                         :pattern_exclude => [ '^bootstrap']
-                                                     })
-                            provision_scripts << "scripts/#{custom_item}"
-                        rescue SystemExit
-                            info "Installation without any specific customization"
-                        end
-                        packer_config = JSON.parse( IO.read( jsonfile ) )
-                        packer_config['provisioners'].each do |p|
-                            if ! provision_scripts.empty? && p['scripts']
-                                provision_scripts.each { |s|  p['scripts'].unshift s }
-                            end
-                            if p['override']
-                                [ 'virtualbox', 'vmware' ].each do |os|
-                                    if p['override'][ os ]
-                                        puts "=> adapting the provisioners '#{os}' to '#{os}-iso'"
-                                        p['override'][ "#{os}-iso" ] = p['override'].delete os
-                                    end
+                    info "adapting #{os} scripts"
+                    provision_scripts = []
+                    Dir["#{TOP_SRCDIR}/#{SCRIPTS_DIR}/core/*", "#{TOP_SRCDIR}/#{SCRIPTS_DIR}/#{os}/*"].each do |f|
+                        script = File.basename( f )
+						puts "=> adding #{f}"
+                        dstdir = Pathname.new( File.join(TOP_SRCDIR, output_dir, 'scripts') )
+                        relative_path = Pathname.new( f ).relative_path_from(dstdir)
+                        FileUtils.ln_s relative_path.to_s, File.join(dstdir, script ), :force => true
+                        provision_scripts << "scripts/bootstrap.sh" if script == 'bootstrap.sh' && ! provision_scripts.include?(/bootstrap\.sh$/)
+                    end
+					# Prepare puppet directory 
+					puppet_role = 'default'
+					# TODO: select puppet custom role
+					puppet_dstdir = Pathname.new( File.join(TOP_SRCDIR, output_dir) )
+					puppet_srcdir = Pathname.new( File.join(TOP_SRCDIR, PUPPET_DIR, puppet_role) )
+					puts "puppet_dstdir = #{puppet_dstdir.to_s}"
+					puts "puppet_srcdir = #{puppet_srcdir.to_s}"
+					puppetdir_relative_path = puppet_srcdir.relative_path_from( puppet_dstdir )
+					puts "rel path = #{puppetdir_relative_path.to_s}"
+					FileUtils.ln_s puppetdir_relative_path.to_s, "#{puppet_dstdir}/puppet", :force => true
+                    # Eventual customization
+                    begin
+	                    custom_item = list_items("#{TOP_SRCDIR}/#{SCRIPTS_DIR}/#{os}/*",
+                                                 {
+                                                     :text => "select the hook module to install",
+                                                     :pattern_exclude => [ 
+                                                                          '^bootstrap',
+                                                                         ],
+		                                             :only_files => true
+                                                 })
+                        provision_scripts << "scripts/#{custom_item}"
+                   rescue SystemExit
+                        info "Installation without any specific customization"
+                    end
+                    packer_config = JSON.parse( IO.read( jsonfile ) )
+					# [Librarian-]puppet specialization
+					# TODO: select appropriate Puppetfile
+					packer_vagrantfile_entry = {
+						"type"        => "file",
+						"source"      => "puppet/Puppetfile",
+						"destination" =>  "/tmp/Puppetfile"
+					}
+					# motd_entry = {
+					# 	"type"   =>  "shell",
+					# 	"script" =>  "scripts/motd.sh",
+					# 	"execute_command" => "echo 'packer' | {{ .Vars }} sudo -E -S sh '{{ .Path }}"
+					# }
+					#packer_config['provisioners'].unshift 
+                    packer_config['provisioners'].each do |p|
+                        if ! provision_scripts.empty? && p['scripts']
+                            provision_scripts.each { |s|  p['scripts'].unshift s }
+                        end	
+						Dir["#{TOP_SRCDIR}/#{SCRIPTS_DIR}/core/*"].each do |f| 
+							script = File.basename( f )
+							if script =~ /motd/
+								{
+									:name     => 'myname',
+									:title    => 'Vagrant Testbox',
+									:subtitle => 'subtitle',
+									:desc     => 'desc',
+									:support  => "#{ENV['GIT_AUTHOR_EMAIL']}"
+								}.each do |k,v| 
+									ans = ask("[motd] Vagrant box #{k}", v)
+									# packer_config["variables"] = { } if packer_config["variables"].nil?
+									# packer_config["variables"][ "motd_#{k}"] = "#{ans}" unless ans.empty?
+									p['environment_vars'] = [] if p['environment_vars'].nil?
+									p['environment_vars'] << "MOTD_#{k.upcase}='#{ans}'"
+									#motd_entry["execute_command"] += " --#{k} \"#{ans}\""  
+								end
+								#motd_entry["execute_command"] += "'"
+							end #else 
+							p['scripts'] << "scripts/#{script}" 
+							#end 
+						end
+                        if p['override']
+                            [ 'virtualbox', 'vmware' ].each do |os|
+                                if p['override'][ os ]
+                                    puts "=> adapting the provisioners '#{os}' to '#{os}-iso'"
+                                    p['override'][ "#{os}-iso" ] = p['override'].delete os
                                 end
                             end
                         end
-                        #ap packer_config['builders']
-                        packer_config['builders'].each do |builder|
-                            if builder['boot_command']
-                                puts "=> remove useless <wait>"
-                                builder['boot_command'].each do |cmd|
-                                    next if cmd =~ /^<esc>/ || cmd =~ /^<enter>/
-                                    cmd.gsub!(/<wait>/, '')
-                                end
+                        if p['scripts']
+	                        p['scripts'].each do |entry| 
+								[ 'chef' ].each do |script|
+									next unless entry =~ /#{script}/
+									puts "=> removing provisioners script '#{script}.sh'"
+									p['scripts'].delete entry
+								end 
+							end
+	                        #         #p['scripts'].delete "scripts/#{scripts}"
+                        end
+                    end
+					packer_config['provisioners'].unshift packer_vagrantfile_entry
+                    #packer_config['provisioners'] << motd_entry
+					#ap packer_config['builders']
+                    packer_config['builders'].each do |builder|
+                        if builder['boot_command']
+                            puts "=> remove useless <wait>"
+                            builder['boot_command'].each do |cmd|
+                                next if cmd =~ /^<esc>/ || cmd =~ /^<enter>/
+                                cmd.gsub!(/<wait>/, '')
                             end
                         end
-                        vagrant_postproc = [
-                                            {
-                                                "type"                => "vagrant",
-                                                "keep_input_artifact" => false,
-                                                "output"              => "#{File.basename output_dir}.box"
-                                            }
-                                           ]
-                        packer_config['post-processors'] = vagrant_postproc if packer_config['post-processors'].nil?
+                    end
+                    vagrant_postproc = [
+                                        {
+                                            "type"                => "vagrant",
+                                            "keep_input_artifact" => false,
+                                            "output"              => "#{File.basename output_dir}.box"
+                                        }
+                                       ]
+                    packer_config['post-processors'] = vagrant_postproc if packer_config['post-processors'].nil?
 
 
-                        # Now store the new json
-                        File.open(jsonfile,"w") do |f|
-                            f.write JSON.pretty_generate(packer_config)
-                        end
+                    # Now store the new json
+                    File.open(jsonfile,"w") do |f|
+                        f.write JSON.pretty_generate(packer_config)
+                    end
 
-                    end  # Dir.chdir...
-                end   # if .... else ....
+                end  # Dir.chdir...
+                #end   # if .... else ....
 
 
             end # task init
@@ -196,7 +258,10 @@ namespace :packer do
                         Dir.glob("*.json").each do |jf|
                             json = File.basename("#{jf}")
                             s = run %{
-                               packer build -only=virtualbox-iso #{json}
+                               PACKER_CACHE_DIR=#{TOP_SRCDIR}/.packer_cache  \
+                               PACKER_LOG=yes   \
+                               PACKER_LOG_PATH=#{TOP_SRCDIR}/#{box}/packer.log \
+                                   packer build -only=virtualbox-iso #{json}
                             }
                             boxfile = File.join(TOP_SRCDIR, "#{box}.box")
                             puts "box file #{boxfile}"

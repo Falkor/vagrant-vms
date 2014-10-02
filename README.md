@@ -3,7 +3,7 @@
 
 Copyright (c) 2014 [Sebastien Varrette](mailto:<Sebastien.Varrette@uni.lu>) [www](http://varrette.gforge.uni.lu)
 
-        Time-stamp: <Mar 2014-07-08 12:44 svarrette>
+        Time-stamp: <Thu 2014-08-28 11:22 svarrette>
 
 -------------------
 
@@ -47,16 +47,38 @@ Configure the repository and its dependencies:
 
 You can initiate a template for a given Operating System:
 
-     $> rake packer:template:generate
-    
-The template is generated in the `packer/` script (for instance `packer/debian-7.5.0-amd64`).
+     $> rake packer:{Debian,CentOS,openSUSE,scientificlinux,ubuntu}:init
+     
+The template is generated in the `packer/` script. You'll have to answer a couple of questions, including the version of the OS 
+
+ (for instance `packer/debian-7.5.0-amd64`).
      
 ## Build a Vagrant box
 
 Once you have generated a template, you can build the corresponding Vagrant box
 using 
 
-     $> rake packer:build
+     $> rake packer:{Debian,CentOS,openSUSE,scientificlinux,ubuntu}:build
+
+If everything goes fine, you shall find your freshly generated box in
+`packer/<os>-<version>-<arch>/<os>-<version>-<arch>.box` that you can then add
+to your local box by running 
+
+     $> vagrant box add packer/<os>-<version>-<arch>/<os>-<version>-<arch>.box
+
+## Customizations
+
+__(in progress)__ Customization of the generated box is based on
+[puppet](http://puppetlabs.com/) and can be performed by the definition of
+profiles in the `puppet/`. 
+
+For each profile, a `Puppetfile` needs to be defined since the puppet
+environment will be later on initialized within the packer process using
+[librarian-puppet](http://librarian-puppet.com/) or
+[r10k](https://github.com/adrienthebo/r10k). 
+Then the appropriate manifest shall be defined.
+
+
 
 ## Git Branching Model
 
@@ -80,6 +102,7 @@ workflow, you have to run the following commands once you cloned it for the
 first time: 
 
       $> rake setup 
+
 ## Resources
 
 ### Git 

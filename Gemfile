@@ -5,4 +5,6 @@ gem 'falkorlib' #, :path => '~/git/github.com/Falkor/falkorlib'
 gem "veewee"
 gem "json"
 gem "veewee-to-packer"
+gem "librarian-puppet"
+gem "puppet"
 

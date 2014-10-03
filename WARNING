@@ -1,0 +1,2 @@
+The scripts currently use a repository that I personaly host on a VM on the AWS plateform.
+It isn't viable in a long term and has to be changed (a solution may be creating a local repo on the network)

@@ -3,7 +3,7 @@
 
 Copyright (c) 2014 [Sebastien Varrette](mailto:<Sebastien.Varrette@uni.lu>) [www](http://varrette.gforge.uni.lu)
 
-        Time-stamp: <Thu 2014-08-28 11:22 svarrette>
+        Time-stamp: <Ven 2014-09-05 22:10 svarrette>
 
 -------------------
 
@@ -32,7 +32,7 @@ First clone this repository:
      $> git clone https://github.com/Falkor/vagrant-vms.git
      $> cd vagrant-vms
 
-Configure [RVM](https://rvm.io/) for that repository:
+Configure [RVM](https://rvm.io/) For that repository:
 
      $> echo 'vagrant-vms' > .ruby-gemset
      $> echo '2.1.0'       > .ruby-version

@@ -6,7 +6,8 @@ apt-get -y install curl figlet vim bash-completion
 # Puppet customization 
 apt-get -y install facter
 
-
+# environment-modules
+apt-get -y install environment-modules
 
 
 

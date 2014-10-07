@@ -22,6 +22,8 @@ elif [ "$VERSION" -eq "7" ]
 then
     wget http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
     rpm -ivh remi-release-7*.rpm 
+ 
+    #yum remove -y ruby    
 
     # Ajout du repository personnel contenant le package ruby
     echo "[personal-repo-www]" >> /etc/yum.repos.d/personal-repos-www.repo

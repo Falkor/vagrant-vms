@@ -20,7 +20,7 @@ mod "saz/motd"
 # A module from git
 # mod 'puppetlabs-ntp',
 #   :git => 'git://github.com/puppetlabs/puppetlabs-ntp.git'
-mod 'easybuild',
+mod 'UNILU-easybuild',
 	:git => 'git://github.com/sylmarien/puppet-easybuild.git'
 
 

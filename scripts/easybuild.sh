@@ -1,2 +1,2 @@
-puppet apply UNILU-easybuild
+puppet apply easybuild
 

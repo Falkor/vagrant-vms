@@ -6,8 +6,9 @@ apt-get -y install curl figlet vim bash-completion
 # Puppet customization 
 apt-get -y install facter
 
-# environment-modules
-apt-get -y install environment-modules
-apt-get -y install python-pip
+# environment-modules (Current version on Debian is to old for EasyBuild, so we use the one from the backport repo)
+printf "\n# Backport repository\ndeb http://http.debian.net/debian wheezy-backports main\n"
+apt-get update
 
+apt-get -t wheezy-backports -y install environment-modules
 

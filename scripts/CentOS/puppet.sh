@@ -7,9 +7,6 @@ yum install -y epel-release
 
 if [ "$VERSION" -eq "6" ]
 then
-    wget http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
-    rpm -Uvh remi-release-6*.rpm 
-
     # Ajout du repository personnel contenant le package ruby
     echo "[personal-repo-www]" >> /etc/yum.repos.d/personal-repos-www.repo
     echo "gpgcheck=0" >> /etc/yum.repos.d/personal-repos-www.repo
@@ -20,11 +17,6 @@ then
     yum install -y ruby-2.1.2-2.el6.x86_64
 elif [ "$VERSION" -eq "7" ]
 then
-    wget http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
-    rpm -ivh remi-release-7*.rpm 
- 
-    #yum remove -y ruby    
-
     # Ajout du repository personnel contenant le package ruby
     echo "[personal-repo-www]" >> /etc/yum.repos.d/personal-repos-www.repo
     echo "gpgcheck=0" >> /etc/yum.repos.d/personal-repos-www.repo

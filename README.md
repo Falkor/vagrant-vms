@@ -39,6 +39,11 @@ Configure [RVM](https://rvm.io/) For that repository:
      $> rvm install `cat .ruby-version`
      $> cd .. && cd -
 
+Configure the gem dependencies:
+
+	 $> gem install bundler
+	 $> bundle install
+
 Configure the repository and its dependencies:
         
      $> rake setup

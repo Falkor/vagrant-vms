@@ -1,29 +1,21 @@
--*- mode: markdown; mode: auto-fill; fill-column: 80 -*-
+-*- mode: markdown; mode: visual-line; fill-column: 80 -*-
 `README.md`
 
 Copyright (c) 2014 [Sebastien Varrette](mailto:<Sebastien.Varrette@uni.lu>) [www](http://varrette.gforge.uni.lu)
 
-        Time-stamp: <Ven 2014-09-05 22:10 svarrette>
+        Time-stamp: <Ven 2015-04-03 15:31 svarrette>
 
 -------------------
 
 # Vagrant VMs
 
-Management and Generation of customized [Vagrant](http://www.vagrantup.com/)
-boxes (using [packer](http://www.packer.io/) and
-[veewee](https://github.com/jedi4ever/veewee))
+Management and Generation of customized [Vagrant](http://www.vagrantup.com/) boxes (using [packer](http://www.packer.io/) and [veewee](https://github.com/jedi4ever/veewee))
 
 
 ## Synopsis
 
-The repository is meant to facilitate the generation of
-[Vagrant](http://www.vagrantup.com/) boxes from the 
-numerous [templates](https://github.com/jedi4ever/veewee/tree/master/templates)
-offered by [VeeWee](https://github.com/jedi4ever/veewee) -- a tool for easily
-(and repeatedly) building custom Vagrant base boxes, KVMs, and virtual machine
-images.
-Internally, [veewee-to-packer](https://github.com/mitchellh/veewee-to-packer) is
-used to make the magical conversion.
+The repository is meant to facilitate the generation of [Vagrant](http://www.vagrantup.com/) boxes from the numerous [templates](https://github.com/jedi4ever/veewee/tree/master/templates) offered by [VeeWee](https://github.com/jedi4ever/veewee) -- a tool for easily (and repeatedly) building custom Vagrant base boxes, KVMs, and virtual machine images.
+Internally, [veewee-to-packer](https://github.com/mitchellh/veewee-to-packer) is used to make the magical conversion.
 
 ## Pre-requisite
 

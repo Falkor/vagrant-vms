@@ -18,3 +18,5 @@ apt-get -y install facter
 
 apt-get update
 
+# Create the alias
+sed -i "s/^#alias/alias/g"  ~vagrant/.bashrc

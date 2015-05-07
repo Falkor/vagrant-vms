@@ -1,6 +1,6 @@
 ##############################################################################
 # Rakefile - Configuration file for rake (http://rake.rubyforge.org/)
-# Time-stamp: <Ven 2014-08-22 23:11 svarrette>
+# Time-stamp: <Thu 2015-05-07 18:56 svarrette>
 #
 # Copyright (c) 2014 Sebastien Varrette <Sebastien.Varrette@uni.lu>
 # .             http://varrette.gforge.uni.lu
@@ -168,9 +168,9 @@ namespace :packer do
 							script = File.basename( f )
 							if script =~ /motd/
 								{
-									:name     => 'myname',
+									:name     => "#{v}",
 									:title    => 'Vagrant Testbox',
-									:subtitle => 'subtitle',
+									:subtitle => "#{os}",
 									:desc     => 'desc',
 									:support  => "#{ENV['GIT_AUTHOR_EMAIL']}"
 								}.each do |k,v| 

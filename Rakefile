@@ -1,6 +1,6 @@
 ##############################################################################
 # Rakefile - Configuration file for rake (http://rake.rubyforge.org/)
-# Time-stamp: <Thu 2015-05-07 18:56 svarrette>
+# Time-stamp: <Thu 2015-05-07 22:29 svarrette>
 #
 # Copyright (c) 2014 Sebastien Varrette <Sebastien.Varrette@uni.lu>
 # .             http://varrette.gforge.uni.lu
@@ -160,6 +160,7 @@ namespace :packer do
 					# 	"execute_command" => "echo 'packer' | {{ .Vars }} sudo -E -S sh '{{ .Path }}"
 					# }
 					#packer_config['provisioners'].unshift 
+                    packer_config['variables'] = {} if packer_config['variables'].nil?
                     packer_config['provisioners'].each do |p|
                         if ! provision_scripts.empty? && p['scripts']
                             provision_scripts.each { |s|  p['scripts'].unshift s }
@@ -175,10 +176,12 @@ namespace :packer do
 									:support  => "#{ENV['GIT_AUTHOR_EMAIL']}"
 								}.each do |k,v| 
 									ans = ask("[motd] Vagrant box #{k}", v)
+                                    packer_config['variables']["motd_#{k}"] = "#{ans}"
 									# packer_config["variables"] = { } if packer_config["variables"].nil?
 									# packer_config["variables"][ "motd_#{k}"] = "#{ans}" unless ans.empty?
 									p['environment_vars'] = [] if p['environment_vars'].nil?
-									p['environment_vars'] << "MOTD_#{k.upcase}='#{ans}'"
+                                    #p[]
+									p['environment_vars'] << "MOTD_#{k.upcase}=" + '{{ user `motd_' + "#{k}" + '`}}'
 									#motd_entry["execute_command"] += " --#{k} \"#{ans}\""  
 								end
 								#motd_entry["execute_command"] += "'"
@@ -263,10 +266,10 @@ namespace :packer do
                                PACKER_LOG_PATH=#{TOP_SRCDIR}/#{box}/packer.log \
                                    packer build -only=virtualbox-iso #{json}
                             }
-                            boxfile = File.join(TOP_SRCDIR, "#{box}.box")
+                            boxfile = File.join(TOP_SRCDIR, "#{box}", "#{box}.box")
                             puts "box file #{boxfile}"
                             puts s.to_i
-                            info "the generated Vagrant box is '#{boxfile}'" if s.to_i == 0 && File.exists?( boxfile )
+                            info "the generated Vagrant box is '#{boxfile}'" if File.exists?( boxfile )
                             if File.exists?( boxfile )
                                 y = ask("Shall it be added to vagrant (Y|n)", 'Yes')
                                 run  %{

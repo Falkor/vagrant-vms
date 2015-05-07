@@ -2,7 +2,7 @@
 ################################################################################
 # motd.sh - Create the proper MOTD with style.  
 # Creation : 21 Aug 2014
-# Time-stamp: <Ven 2014-08-22 21:14 svarrette>
+# Time-stamp: <Thu 2015-05-07 22:13 svarrette>
 #
 # Copyright (c) 2014 Sebastien Varrette <Sebastien.Varrette@uni.lu>
 #               http://varrette.gforge.uni.lu
@@ -26,7 +26,6 @@
 
 
 # Assumes figlet and facter are installed 
-
 MOTD="/etc/motd"
 
 #==========  Default Config =============
@@ -64,6 +63,18 @@ while [ $# -ge 1 ]; do
     shift
 done
 
+cat <<EOF
+MOTD generation using the following environment variables:
+
+export MOTD_NAME="${MOTD_NAME}"
+export MOTD_TITLE="${MOTD_TITLE}"
+export MOTD_SUBTITLE="${MOTD_SUBTITLE}"
+export MOTD_DESC="${MOTD_DESC}"
+export HOSTNAME=`hostname -f`
+export MOTD_SUPPORT="${MOTD_SUPPORT}"
+EOF
+
+
 cat <<MOTD_EOF > ${MOTD}
 ================================================================================
  Welcome to the Vagrant box ${NAME}
@@ -78,10 +89,10 @@ fi
 cat <<MOTD_EOF >> ${MOTD}
 ================================================================================
     Hostname.... `hostname -f`
-    OS.......... `facter --yaml | grep lsbdistdescription | cut -d ':' -f 2`
+    OS..........`facter --yaml | grep lsbdistdescription | cut -d ':' -f 2 | sed "s/\"//g"`
     Support..... ${SUPPORT_MAIL}
     Docs........ Vagrant: http://docs.vagrantup.com/v2/
 
-    ${DESC}         
+    ${DESC}
 ================================================================================
 MOTD_EOF

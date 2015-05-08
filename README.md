@@ -3,7 +3,7 @@
 
 Copyright (c) 2014 [Sebastien Varrette](mailto:<Sebastien.Varrette@uni.lu>) [www](http://varrette.gforge.uni.lu)
 
-        Time-stamp: <Ven 2015-04-03 15:31 svarrette>
+        Time-stamp: <Thu 2015-05-07 23:47 svarrette>
 
 -------------------
 
@@ -75,7 +75,20 @@ environment will be later on initialized within the packer process using
 [r10k](https://github.com/adrienthebo/r10k). 
 Then the appropriate manifest shall be defined.
 
+## Repackage a box
 
+Assuming you made some final customization on your box, you can commit the changes you applied, you can package again the box (assuming the box is still up and running and configure to suit your tastes) via `vagrant package`
+
+* locate the name of the running VM by opening `VirtualBox` (`vagrant-vms_default_1431034026308_70455` in the below example). Use the following command for that:
+
+	    $> VBoxManage list runningvms
+
+Create the box (which will generate the file `package.box`) that you can then rename and share
+
+        $> vagrant package \
+	        --base vagrant-vms_default_1431034026308_70455 \
+		    --output packer/<os>-<version>-<arch>/<os>-<version>-<arch>.box  # adapt accordingly
+ 
 
 ## Git Branching Model
 

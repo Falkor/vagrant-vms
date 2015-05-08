@@ -1,6 +1,6 @@
 ##############################################################################
 # Rakefile - Configuration file for rake (http://rake.rubyforge.org/)
-# Time-stamp: <Thu 2015-05-07 22:29 svarrette>
+# Time-stamp: <Thu 2015-05-07 23:25 svarrette>
 #
 # Copyright (c) 2014 Sebastien Varrette <Sebastien.Varrette@uni.lu>
 # .             http://varrette.gforge.uni.lu
@@ -99,7 +99,7 @@ namespace :packer do
             task :init do |t|
                 info "#{t.comment}"
                 #version_list = raw_list.select { |e| e =~ /^#{os}/ }
-                v = select_from(version_list, "Select the supported #{os} version", 16)
+                v = select_from(version_list, "Select the supported #{os} version", 17)
                 output_dir = File.join(PACKER_TEMPLATE_DIR, v.gsub(/-netboot$/, '').downcase)
                 if File.directory?( File.join(TOP_SRCDIR, output_dir) )
                     warn "the directory #{output_dir} already exists"
@@ -266,14 +266,14 @@ namespace :packer do
                                PACKER_LOG_PATH=#{TOP_SRCDIR}/#{box}/packer.log \
                                    packer build -only=virtualbox-iso #{json}
                             }
-                            boxfile = File.join(TOP_SRCDIR, "#{box}", "#{box}.box")
+                            boxfile = File.join(TOP_SRCDIR, "#{box}", "#{File.basename box}.box")
                             puts "box file #{boxfile}"
                             puts s.to_i
                             info "the generated Vagrant box is '#{boxfile}'" if File.exists?( boxfile )
                             if File.exists?( boxfile )
                                 y = ask("Shall it be added to vagrant (Y|n)", 'Yes')
                                 run  %{
-                                  vagrant box add #{box} #{boxfile}
+                                  vagrant box add #{File.basename box} #{boxfile}
                                 } unless y =~ /n.*/i
                             end
                         end

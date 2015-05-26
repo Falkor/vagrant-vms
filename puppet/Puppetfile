@@ -11,6 +11,7 @@ forge "https://forgeapi.puppetlabs.com"
 
 # A module from the Puppet Forge
 mod 'puppetlabs/stdlib'
+mod 'puppetlabs/vcsrepo'
 mod "puppetlabs/concat"
 mod "puppetlabs/ntp"
 mod "zack/r10k"

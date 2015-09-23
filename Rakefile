@@ -1,6 +1,6 @@
 ##############################################################################
 # Rakefile - Configuration file for rake (http://rake.rubyforge.org/)
-# Time-stamp: <Thu 2015-05-07 23:25 svarrette>
+# Time-stamp: <Wed 2015-09-23 15:11 svarrette>
 #
 # Copyright (c) 2014 Sebastien Varrette <Sebastien.Varrette@uni.lu>
 # .             http://varrette.gforge.uni.lu
@@ -122,30 +122,30 @@ namespace :packer do
                         FileUtils.ln_s relative_path.to_s, File.join(dstdir, script ), :force => true
                         provision_scripts << "scripts/bootstrap.sh" if script == 'bootstrap.sh' && ! provision_scripts.include?(/bootstrap\.sh$/)
                     end
-					# Prepare puppet directory 
-					puppet_role = 'default'
-					# TODO: select puppet custom role
-					puppet_dstdir = Pathname.new( File.join(TOP_SRCDIR, output_dir) )
-					puppet_srcdir = Pathname.new( File.join(TOP_SRCDIR, PUPPET_DIR, puppet_role) )
-					puts "puppet_dstdir = #{puppet_dstdir.to_s}"
-					puts "puppet_srcdir = #{puppet_srcdir.to_s}"
-					puppetdir_relative_path = puppet_srcdir.relative_path_from( puppet_dstdir )
-					puts "rel path = #{puppetdir_relative_path.to_s}"
-					FileUtils.ln_s puppetdir_relative_path.to_s, "#{puppet_dstdir}/puppet", :force => true
+					# # Prepare puppet directory 
+				    puppet_role = 'default'
+				    # TODO: select puppet custom role
+				    puppet_dstdir = Pathname.new( File.join(TOP_SRCDIR, output_dir) )
+				    puppet_srcdir = Pathname.new( File.join(TOP_SRCDIR, PUPPET_DIR, puppet_role) )
+				    # puts "puppet_dstdir = #{puppet_dstdir.to_s}"
+				    # puts "puppet_srcdir = #{puppet_srcdir.to_s}"
+				    puppetdir_relative_path = puppet_srcdir.relative_path_from( puppet_dstdir )
+				    puts "rel path = #{puppetdir_relative_path.to_s}"
+				    FileUtils.ln_s puppetdir_relative_path.to_s, "#{puppet_dstdir}/puppet", :force => true
                     # Eventual customization
-                    begin
-	                    custom_item = list_items("#{TOP_SRCDIR}/#{SCRIPTS_DIR}/#{os}/*",
-                                                 {
-                                                     :text => "select the hook module to install",
-                                                     :pattern_exclude => [ 
-                                                                          '^bootstrap',
-                                                                         ],
-		                                             :only_files => true
-                                                 })
-                        provision_scripts << "scripts/#{custom_item}"
-                   rescue SystemExit
-                        info "Installation without any specific customization"
-                    end
+                   #  begin
+	               #      custom_item = list_items("#{TOP_SRCDIR}/#{SCRIPTS_DIR}/#{os}/*",
+                   #                               {
+                   #                                   :text => "select the hook module to install",
+                   #                                   :pattern_exclude => [ 
+                   #                                                        '^bootstrap',
+                   #                                                       ],
+		           #                                   :only_files => true
+                   #                               })
+                   #      provision_scripts << "scripts/#{custom_item}"
+                   # rescue SystemExit
+                   #      info "Installation without any specific customization"
+                   #  end
                     packer_config = JSON.parse( IO.read( jsonfile ) )
 					# [Librarian-]puppet specialization
 					# TODO: select appropriate Puppetfile
@@ -172,7 +172,7 @@ namespace :packer do
 									:name     => "#{v}",
 									:title    => 'Vagrant Testbox',
 									:subtitle => "#{os}",
-									:desc     => 'desc',
+									:desc     => "Generic #{os} testing box",
 									:support  => "#{ENV['GIT_AUTHOR_EMAIL']}"
 								}.each do |k,v| 
 									ans = ask("[motd] Vagrant box #{k}", v)

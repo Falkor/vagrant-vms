@@ -46,7 +46,7 @@ end
 FalkorLib.config.git do |c|
     c[:submodules] = {
         'veewee' => {
-            :url    => 'https://github.com/jedi4ever/veewee.git'
+            :url => 'https://github.com/Falkor/veewee.git'
         }
     }
 end

@@ -10,6 +10,9 @@ COLOR_BACK="\033[0m"
 PUPPET_DIR=/etc/puppet/
 PUPPETFILE_SRC=/tmp/Puppetfile
 
+GEM_INSTALL_DIR=`gem environment | grep 'EXECUTABLE DIRECTORY' | cut -d ':' -f 2 | sed 's/\s*//g'`
+export PATH=$PATH:${GEM_INSTALL_DIR}
+
 if [ -d '/vagrant' ]; then 
     [ -f '/vagrant/puppet/Puppetfile' ] && PUPPETFILE_SRC=/vagrant/puppet/Puppetfile
 fi 
@@ -65,8 +68,11 @@ if [ "$(gem list -i '^librarian-puppet$')" == "false" ]; then
     info "installing the 'librarian-puppet' gem"
     gem install librarian-puppet --no-rdoc --no-ri
     info "(clean) install librarian puppet configuration"
-    cd ${PUPPET_DIR} && librarian-puppet install --clean --verbose
+	LIBRARIAN_OPT="install --clean --verbose"
 else
     info "updating librarian puppet configuration"
-    cd ${PUPPET_DIR} && librarian-puppet update --verbose
+	LIBRARIAN_OPT="update --verbose"
 fi
+
+
+cd ${PUPPET_DIR} && librarian-puppet ${LIBRARIAN_OPT}

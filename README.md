@@ -3,14 +3,13 @@
 
 Copyright (c) 2014 [Sebastien Varrette](mailto:<Sebastien.Varrette@uni.lu>) [www](http://varrette.gforge.uni.lu)
 
-        Time-stamp: <Mon 2015-09-28 16:56 svarrette>
+        Time-stamp: <Mon 2015-09-28 17:59 svarrette>
 
 -------------------
 
 # Vagrant VMs
 
 Management and Generation of customized [Vagrant](http://www.vagrantup.com/) boxes (using [packer](http://www.packer.io/) and [veewee](https://github.com/jedi4ever/veewee))
-
 
 ## Synopsis
 
@@ -19,22 +18,30 @@ Internally, [veewee-to-packer](https://github.com/mitchellh/veewee-to-packer) is
 
 ## Pre-requisite
 
+### Virtualbox / Vagrant 
+
+I made a [short talk](https://hpc.uni.lu/hpc-school/slides/2015-06-25-UL-HPC-School_2015_keynote3_vagrant.pdf)  explaining Vagrant together with some installation notes. So you are more than encourage to take a look at it
+
+* [slides (PDF)](https://hpc.uni.lu/hpc-school/slides/2015-06-25-UL-HPC-School_2015_keynote3_vagrant.pdf) 
+
+
+
+### Repository Setup
+
 First clone this repository: 
 
      $> git clone https://github.com/Falkor/vagrant-vms.git
      $> cd vagrant-vms
 
-Configure [RVM](https://rvm.io/) For that repository:
+Ensure [RVM](https://rvm.io/) is correctly configured for this repository:
 
-     $> echo 'vagrant-vms' > .ruby-gemset
-     $> echo '2.1.0'       > .ruby-version
-     $> rvm install `cat .ruby-version`
-     $> cd .. && cd -
+     $> rvm current
 
 Configure the gem dependencies:
 
      $> gem install bundler
      $> bundle install
+     $> rake -T     # should work ;) 
 
 Configure the repository and its dependencies:
         
@@ -89,12 +96,26 @@ Assuming you made some final customization on your box, you can commit the chang
 
 * Ensure that the `~vagrant/.ssh/authorized_keys` hold the **default** public key used through all Vagrant public images
      - see [vagrant key pair on Github](https://github.com/mitchellh/vagrant/tree/master/keys)
-     - by default, this key is judged (on purpose) insecure and thus is overwritten with a new (random) key pair unless you set `config.ssh.`
+     - by default, this key is judged (on purpose) insecure and thus is overwritten with a new (random) key pair unless you set [`config.ssh.insert_key`](https://docs.vagrantup.com/v2/vagrantfile/ssh_settings.html) to `false` (default is `true`). 
+     - add it as follows:
 
-when 
-- add it as follows:
+            $> sudo -u vagrant wget -O ~vagrant/.ssh/authorized_keys \
+			       --no-check-certificate \
+			       https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub
 
-             $> sudo -u vagrant wget -O ~vagrant/.ssh/authorized_keys --no-check-certificate https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub
+* Ensure the Guest additions for Virtualbox match. For that, you can rely on the [vagrant-vbguest](https://github.com/dotless-de/vagrant-vbguest)
+
+        $> vagrant plugin install vagrant-vbguest
+		$> vagrant vbguest --status
+		GuestAdditions versions on your host (5.0.4) and guest (4.3.26) do not match.
+
+  In case of a mismatch, you can easily install the latest Guest additions within your **running** VM by running (you can safely ignore the error on Window System drivers):
+
+		$> vagrant vbguest --do install --auto-reboot
+		$> vagrant halt
+		$> vagrant up
+		[...]
+		GuestAdditions 5.0.4 running --- OK.
 
 
 * locate the name of the running VM by opening `VirtualBox` (`vagrant-vms_default_1431034026308_70455` in the below example). Use the following command for that:
@@ -107,6 +128,12 @@ Create the box (which will generate the file `package.box`) that you can then re
             --base vagrant-vms_default_1431034026308_70455 \
             --output packer/<os>-<version>-<arch>/<os>-<version>-<arch>.box  # adapt accordingly
  
+
+Now you can upload the generated box on [Vagrant Cloud](http://vagrantcloud.com).
+
+* select 'New version', enter the new version number, and add a new box provider (`Virtualbox`) to upload the generated box.
+* Remember upon successful upload to **release** the uploaded box (by default it is unreleased).
+
 
 ## Git Branching Model
 

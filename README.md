@@ -3,7 +3,7 @@
 
 Copyright (c) 2014 [Sebastien Varrette](mailto:<Sebastien.Varrette@uni.lu>) [www](http://varrette.gforge.uni.lu)
 
-        Time-stamp: <Thu 2015-05-07 23:47 svarrette>
+        Time-stamp: <Mon 2015-09-28 16:56 svarrette>
 
 -------------------
 
@@ -33,8 +33,8 @@ Configure [RVM](https://rvm.io/) For that repository:
 
 Configure the gem dependencies:
 
-	 $> gem install bundler
-	 $> bundle install
+     $> gem install bundler
+     $> bundle install
 
 Configure the repository and its dependencies:
         
@@ -79,15 +79,33 @@ Then the appropriate manifest shall be defined.
 
 Assuming you made some final customization on your box, you can commit the changes you applied, you can package again the box (assuming the box is still up and running and configure to suit your tastes) via `vagrant package`
 
+
+* Clean the VM to save some space. For that, you can invoke the `zerodisk.sh` script embedded in packer that has the following content:
+
+        #!/bin/bash
+        # Zero out the free space to save space in the final image:
+        dd if=/dev/zero of=/EMPTY bs=1M
+        rm -f /EMPTY
+
+* Ensure that the `~vagrant/.ssh/authorized_keys` hold the **default** public key used through all Vagrant public images
+     - see [vagrant key pair on Github](https://github.com/mitchellh/vagrant/tree/master/keys)
+     - by default, this key is judged (on purpose) insecure and thus is overwritten with a new (random) key pair unless you set `config.ssh.`
+
+when 
+- add it as follows:
+
+             $> sudo -u vagrant wget -O ~vagrant/.ssh/authorized_keys --no-check-certificate https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub
+
+
 * locate the name of the running VM by opening `VirtualBox` (`vagrant-vms_default_1431034026308_70455` in the below example). Use the following command for that:
 
-	    $> VBoxManage list runningvms
+        $> VBoxManage list runningvms
 
 Create the box (which will generate the file `package.box`) that you can then rename and share
 
         $> vagrant package \
-	        --base vagrant-vms_default_1431034026308_70455 \
-		    --output packer/<os>-<version>-<arch>/<os>-<version>-<arch>.box  # adapt accordingly
+            --base vagrant-vms_default_1431034026308_70455 \
+            --output packer/<os>-<version>-<arch>/<os>-<version>-<arch>.box  # adapt accordingly
  
 
 ## Git Branching Model

@@ -3,7 +3,7 @@
 
 Copyright (c) 2014 [Sebastien Varrette](mailto:<Sebastien.Varrette@uni.lu>) [www](http://varrette.gforge.uni.lu)
 
-        Time-stamp: <Mon 2015-09-28 17:59 svarrette>
+        Time-stamp: <Tue 2015-09-29 10:34 svarrette>
 
 -------------------
 
@@ -100,22 +100,22 @@ Assuming you made some final customization on your box, you can commit the chang
      - add it as follows:
 
             $> sudo -u vagrant wget -O ~vagrant/.ssh/authorized_keys \
-			       --no-check-certificate \
-			       https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub
+                   --no-check-certificate \
+                   https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub
 
 * Ensure the Guest additions for Virtualbox match. For that, you can rely on the [vagrant-vbguest](https://github.com/dotless-de/vagrant-vbguest)
 
         $> vagrant plugin install vagrant-vbguest
-		$> vagrant vbguest --status
-		GuestAdditions versions on your host (5.0.4) and guest (4.3.26) do not match.
+        $> vagrant vbguest --status
+        GuestAdditions versions on your host (5.0.4) and guest (4.3.26) do not match.
 
   In case of a mismatch, you can easily install the latest Guest additions within your **running** VM by running (you can safely ignore the error on Window System drivers):
 
-		$> vagrant vbguest --do install --auto-reboot
-		$> vagrant halt
-		$> vagrant up
-		[...]
-		GuestAdditions 5.0.4 running --- OK.
+        $> vagrant vbguest --do install --auto-reboot
+        $> vagrant halt
+        $> vagrant up
+        [...]
+        GuestAdditions 5.0.4 running --- OK.
 
 
 * locate the name of the running VM by opening `VirtualBox` (`vagrant-vms_default_1431034026308_70455` in the below example). Use the following command for that:

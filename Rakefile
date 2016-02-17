@@ -1,6 +1,6 @@
 ##############################################################################
 # Rakefile - Configuration file for rake (http://rake.rubyforge.org/)
-# Time-stamp: <Wed 2015-09-23 15:11 svarrette>
+# Time-stamp: <Wed 2016-02-17 21:19 svarrette>
 #
 # Copyright (c) 2014 Sebastien Varrette <Sebastien.Varrette@uni.lu>
 # .             http://varrette.gforge.uni.lu
@@ -45,9 +45,8 @@ end
 # Configure the git submodules
 FalkorLib.config.git do |c|
     c[:submodules] = {
-        'veewee' => {
-            :url => 'https://github.com/Falkor/veewee.git'
-        }
+        'veewee' => { :url => 'https://github.com/Falkor/veewee.git' },
+        'puppet-bootstrap' => { :url => 'https://github.com/hashicorp/puppet-bootstrap.git' }
     }
 end
 

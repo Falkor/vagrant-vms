@@ -2,3 +2,7 @@
 	path = .submodules/veewee
 	url = https://github.com/Falkor/veewee.git
 	branch = master
+[submodule ".submodules/puppet-bootstrap"]
+	path = .submodules/puppet-bootstrap
+	url = https://github.com/hashicorp/puppet-bootstrap.git
+	branch = master
